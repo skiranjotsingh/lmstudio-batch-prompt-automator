@@ -8,6 +8,7 @@ import time
 import subprocess
 import sys
 import re
+import webbrowser
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -172,6 +173,17 @@ class LMStudioBatchApp:
 
         self.open_folder_btn = ctk.CTkButton(btn_frame, text="📂 Open Output Folder", command=self._open_output_folder, state="disabled")
         self.open_folder_btn.pack(side="left", padx=5)
+
+        # ── Developer Footer ────────────────────────
+        dev_label = ctk.CTkLabel(
+            self.main_container, 
+            text="Developed by Kiranjot Singh Malhotra",
+            text_color=("gray60", "gray40"), 
+            font=ctk.CTkFont(size=11, slant="italic"),
+            cursor="hand2"
+        )
+        dev_label.pack(side="bottom", pady=(10, 0))
+        dev_label.bind("<Button-1>", lambda e: webbrowser.open("https://github.com/skiranjotsingh"))
 
     def _toggle_advanced(self):
         if self.adv_frame.winfo_ismapped():
