@@ -213,6 +213,28 @@ class LMStudioBatchApp:
         base = self.server_url_var.get().strip().rstrip("/")
         
         try:
+            # Secondary fetch to get size_bytes (api/v0 doesn't include sizes, but api/v1 does)
+            sizes_map = {}
+            try:
+                r1 = requests.get(f"{base}/api/v1/models", timeout=5)
+                if r1.ok:
+                    for m1 in r1.json().get("models", []):
+                        key = m1.get("key", "")
+                        sb = m1.get("size_bytes")
+                        if key and sb:
+                            sizes_map[key] = sb
+                            # v0 ids may have @quantization suffix (e.g. "model@iq3_m")
+                            qname = ""
+                            q = m1.get("quantization")
+                            if isinstance(q, dict):
+                                qname = q.get("name", "")
+                            elif isinstance(q, str):
+                                qname = q
+                            if qname:
+                                sizes_map[f"{key}@{qname.lower()}"] = sb
+            except Exception:
+                pass
+
             r = requests.get(f"{base}/api/v0/models", timeout=10)
             r.raise_for_status()
             data = r.json()
@@ -222,7 +244,7 @@ class LMStudioBatchApp:
                     mid = m.get("id") or m.get("name")
                     display_name = m.get("name") or mid
                     if mid:
-                        size_bytes = m.get("size_bytes")
+                        size_bytes = sizes_map.get(mid)
                         size_str = ""
                         if size_bytes:
                             size_gb = size_bytes / (1024**3)
